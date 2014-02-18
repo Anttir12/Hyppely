@@ -186,7 +186,7 @@ class MapEditor():
 			if sprite.save:
 				self.setupList.append(sprite.get_data())
 		try:
-			with open("/maps"+filename, 'wb') as f:
+			with open("maps/"+filename, 'wb') as f:
 				pickle.dump(self.setupList, f)
 		except:
 			print("Fuck meh!! Save failed")
