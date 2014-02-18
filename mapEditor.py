@@ -43,7 +43,7 @@ class MapEditor():
 		self.lue = lueString.lue(self.screen, self.font) 
 		self.boldfont = pygame.font.SysFont("Arial", 26, True)
 		self.normfont = pygame.font.SysFont("Arial", 26)
-		self.controls = pygame.image.load("controls1.PNG").convert()
+		self.controls = pygame.image.load("graphics/controls1.PNG").convert()
 		self.controls.set_colorkey((255,255,255))
 		self.camera = Camera(800,800)
 		
@@ -186,7 +186,7 @@ class MapEditor():
 			if sprite.save:
 				self.setupList.append(sprite.get_data())
 		try:
-			with open(filename, 'wb') as f:
+			with open("/maps"+filename, 'wb') as f:
 				pickle.dump(self.setupList, f)
 		except:
 			print("Fuck meh!! Save failed")
@@ -196,7 +196,7 @@ class MapEditor():
 	def load_map(self, filename="taso"):
 		
 		try:
-			with open(filename, 'rb') as f:
+			with open("maps/"+filename, 'rb') as f:
 				self.setupList = pickle.load(f)
 			for setup in self.setupList:
 				pos, dimensions, type = setup
@@ -278,20 +278,20 @@ class Player(pygame.sprite.Sprite):
 			
 	def change_type(self,type):
 		if type == 1:
-			self.texture = pygame.image.load("tile1.png").convert()
+			self.texture = pygame.image.load("graphics/tile1.png").convert()
 		elif type == 2:
-			self.texture = pygame.image.load("tile2.png").convert()
+			self.texture = pygame.image.load("graphics/tile2.png").convert()
 		elif type == 3:
-			self.texture = pygame.image.load("tile3.png").convert()
+			self.texture = pygame.image.load("graphics/tile3.png").convert()
 		elif type == 4:
-			self.texture = pygame.image.load("tile4.png").convert()
+			self.texture = pygame.image.load("graphics/tile4.png").convert()
 		elif type == 5:
-			self.texture = pygame.image.load("tile5.png").convert()
+			self.texture = pygame.image.load("graphics/tile5.png").convert()
 		elif type == 0:
 			self.texture.fill((0,0,255))
 			self.change_dimensions(40,46)
 		elif type == 9:
-			self.texture = pygame.image.load("puukottaja0.png").convert()
+			self.texture = pygame.image.load("graphics/puukottaja0.png").convert()
 			self.change_dimensions(45,64)
 		self.type = type
 		self.apply_texture()
@@ -347,19 +347,19 @@ class Wall(pygame.sprite.Sprite):
 	def check_type(self):
 		texture = self.image
 		if self.type == 1:
-			texture = pygame.image.load("tile1.png").convert()
+			texture = pygame.image.load("graphics/tile1.png").convert()
 		elif self.type == 2:
-			texture = pygame.image.load("tile2.png").convert()
+			texture = pygame.image.load("graphics/tile2.png").convert()
 		elif self.type == 3:
-			texture = pygame.image.load("tile3.png").convert()
+			texture = pygame.image.load("graphics/tile3.png").convert()
 		elif self.type == 4:
-			texture = pygame.image.load("tile4.png").convert()
+			texture = pygame.image.load("graphics/tile4.png").convert()
 		elif self.type == 5:
-			texture = pygame.image.load("tile5.png").convert()
+			texture = pygame.image.load("graphics/tile5.png").convert()
 		elif self.type == 0:
 			texture.fill((0,0,255))
 		elif self.type == 9:
-			texture = pygame.image.load("puukottaja0.png").convert()
+			texture = pygame.image.load("graphics/puukottaja0.png").convert()
 
 		self.apply_texture(texture)
 		

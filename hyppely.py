@@ -144,7 +144,7 @@ class Tasohyppely():
 		id = 0
 		self.start_pos= (0,0)
 		try:
-			with open(filename, 'rb') as f:#open file
+			with open("maps/"+filename, 'rb') as f:#open file
 				self.setupList = pickle.load(f)#saves the contents of the file in a list
 			for setup in self.setupList:#Uses the data provided by the file to build the world
 				pos, dimensions, type = setup
@@ -179,7 +179,7 @@ class Player(pygame.sprite.Sprite):
 
 	def __init__(self, walls,start_pos):
 		pygame.sprite.Sprite.__init__(self)
-		self.image = pygame.image.load("pelaaja_oikea_0.png").convert()
+		self.image = pygame.image.load("graphics/pelaaja_oikea_0.png").convert()
 		self.image.set_colorkey(WHITE)
 		self.rect = self.image.get_rect()
 		#Loads the png files to list for the running animation. 
@@ -348,12 +348,12 @@ class Player(pygame.sprite.Sprite):
 		return dead
 			
 	def load_animations(self):
-		self.right_image_list.append(pygame.image.load("pelaaja_oikea_0.png").convert())
-		self.right_image_list.append(pygame.image.load("pelaaja_oikea_1.png").convert())
-		self.right_image_list.append(pygame.image.load("pelaaja_oikea_2.png").convert())
-		self.right_image_list.append(pygame.image.load("pelaaja_oikea_3.png").convert())
-		self.right_image_list.append(pygame.image.load("pelaaja_oikea_2.png").convert())
-		self.right_image_list.append(pygame.image.load("pelaaja_oikea_1.png").convert())
+		self.right_image_list.append(pygame.image.load("graphics/pelaaja_oikea_0.png").convert())
+		self.right_image_list.append(pygame.image.load("graphics/pelaaja_oikea_1.png").convert())
+		self.right_image_list.append(pygame.image.load("graphics/pelaaja_oikea_2.png").convert())
+		self.right_image_list.append(pygame.image.load("graphics/pelaaja_oikea_3.png").convert())
+		self.right_image_list.append(pygame.image.load("graphics/pelaaja_oikea_2.png").convert())
+		self.right_image_list.append(pygame.image.load("graphics/pelaaja_oikea_1.png").convert())
 		#Makes a new list where the image is flipped vertically
 		self.left_image_list = []
 		for image in self.right_image_list:
@@ -378,15 +378,15 @@ class Wall(pygame.sprite.Sprite):
 	def check_type(self):
 		texture = self.image
 		if self.type == 1:
-			texture = pygame.image.load("tile1.png").convert()
+			texture = pygame.image.load("graphics/tile1.png").convert()
 		elif self.type == 2:
-			texture = pygame.image.load("tile2.png").convert()
+			texture = pygame.image.load("graphics/tile2.png").convert()
 		elif self.type == 3:
-			texture = pygame.image.load("tile3.png").convert()
+			texture = pygame.image.load("graphics/tile3.png").convert()
 		elif self.type == 4:
-			texture = pygame.image.load("tile4.png").convert()
+			texture = pygame.image.load("graphics/tile4.png").convert()
 		elif self.type == 5:
-			texture = pygame.image.load("tile5.png").convert()
+			texture = pygame.image.load("graphics/tile5.png").convert()
 
 		self.apply_texture(texture)
 	
@@ -455,12 +455,12 @@ class Enemy(pygame.sprite.Sprite):
 		self.right_image_list =[]
 		self.left_image_list =[]
 		if type == 1:
-			self.right_image_list.append(pygame.image.load("puukottaja0.png").convert())
-			self.right_image_list.append(pygame.image.load("puukottaja1.png").convert())
-			self.right_image_list.append(pygame.image.load("puukottaja2.png").convert())
-			self.right_image_list.append(pygame.image.load("puukottaja3.png").convert())
-			self.right_image_list.append(pygame.image.load("puukottaja2.png").convert())
-			self.right_image_list.append(pygame.image.load("puukottaja1.png").convert())
+			self.right_image_list.append(pygame.image.load("graphics/puukottaja0.png").convert())
+			self.right_image_list.append(pygame.image.load("graphics/puukottaja1.png").convert())
+			self.right_image_list.append(pygame.image.load("graphics/puukottaja2.png").convert())
+			self.right_image_list.append(pygame.image.load("graphics/puukottaja3.png").convert())
+			self.right_image_list.append(pygame.image.load("graphics/puukottaja2.png").convert())
+			self.right_image_list.append(pygame.image.load("graphics/puukottaja1.png").convert())
 			#Makes a new list where the image is flipped vertically
 			for image in self.right_image_list:
 				self.left_image_list.append(pygame.transform.flip(image,True,False))
