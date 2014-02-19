@@ -3,12 +3,13 @@ from pygame.locals import *
 """
 Muutin animaatiota sillain et HETI kun vaihtaa suuntaa niin pelaajan kuvakin kääntyy ympäri
 TODO:
-	Animaatiot spritelle  DONE
+	Animaatiot spritelle  DONE  
 	Grafiikat seinille DONE
 	Taustakuva?
 	ampuminen DONE
 	Oma ERILLINEN fysiikka moottori. se olis hauska?
 """
+#ADDED 19.2.14 player picturereturner line 261 
 BLACK = (0,0,0)
 WHITE = (255,255,255)
 WIDTH = 800
@@ -218,6 +219,7 @@ class Player(pygame.sprite.Sprite):
 			
 		self.help += 1	
 		if self.left:
+			#self.image = self.left_image_list[0]
 			if not self.facing_left:
 				self.frame = 0
 				self.help = 6
@@ -236,8 +238,9 @@ class Player(pygame.sprite.Sprite):
 			for i in range(0,self.speed):
 				if self.move_x(-1):
 					break
-			
-		elif self.right:
+		
+		elif self.right:    #elif
+			#self.image = self.right_image_list[0]
 			if self.facing_left:
 				self.frame = 0
 				self.help = 6
@@ -256,7 +259,13 @@ class Player(pygame.sprite.Sprite):
 			for i in range(0,self.speed):
 				if self.move_x(1):
 					break
-					
+		elif not self.right and not self.left:		#returns the player picture to its original stance
+			if self.facing_left:
+				self.image = self.left_image_list[0]	#added
+				self.image.set_colorkey(WHITE)
+			else:
+				self.image = self.right_image_list[0]	#added
+				self.image.set_colorkey(WHITE)
 		self.gravity(seconds)#Add gravity to the y axis
 		if self.up:
 			for i in range(0,int(-self.yvelocity)):
