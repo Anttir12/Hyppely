@@ -1,8 +1,7 @@
 import pygame,sys,random, pickle, lueString
 from pygame.locals import * 
 """
-v 0.5 Collision bugit korjattu, yhden pienen bugin korjaus vaati purkka korjauksen
-!!!!!!!!!!!!!!!! KAMERAN ASETUS OIKEAAN PAIKKAAN KUN MAPPI LADATTU! TEE SE 
+Muutin animaatiota sillain et HETI kun vaihtaa suuntaa niin pelaajan kuvakin kääntyy ympäri
 TODO:
 	Animaatiot spritelle  DONE
 	Grafiikat seinille DONE
@@ -122,6 +121,7 @@ class Tasohyppely():
 	def check_collision(self):
 		hit_list = pygame.sprite.spritecollide(self.player, self.enemySprites, True)
 		for hit in hit_list:
+			print("Ouch", hit.id)
 			self.player.hp -= 1
 			if self.player.checkHP():
 				pass
@@ -218,7 +218,10 @@ class Player(pygame.sprite.Sprite):
 			
 		self.help += 1	
 		if self.left:
-			self.facing_left = True
+			if not self.facing_left:
+				self.frame = 0
+				self.help = 6
+				self.facing_left = True
 			#replace image with a new one every fifth frame
 			if self.help > 5:
 				self.oldrect = self.rect
@@ -235,7 +238,10 @@ class Player(pygame.sprite.Sprite):
 					break
 			
 		elif self.right:
-			self.facing_left = False
+			if self.facing_left:
+				self.frame = 0
+				self.help = 6
+				self.facing_left = False
 			#replace image with a new one every fifth frame
 			if self.help > 5:
 				self.oldrect = self.rect
@@ -450,7 +456,7 @@ class Enemy(pygame.sprite.Sprite):
 		self.frame = 0
 		self.yvelocity = 0
 		self.walls = None
-		
+		self.facing_left = True
 	def apply_texture(self,type=1):
 		self.right_image_list =[]
 		self.left_image_list =[]
@@ -477,7 +483,10 @@ class Enemy(pygame.sprite.Sprite):
 			self.left = False
 		self.help += 1	
 		if self.left:
-			self.facing_left = True
+			if not self.facing_left:
+				self.frame = 0
+				self.help = 6
+				self.facing_left = True
 			#replace image with a new one every fifth frame
 			if self.help > 5:
 				self.oldrect = self.rect
@@ -494,7 +503,10 @@ class Enemy(pygame.sprite.Sprite):
 					break
 			
 		elif self.right:
-			self.facing_left = False
+			if self.facing_left:
+				self.frame = 0
+				self.help = 6
+				self.facing_left = False
 			#replace image with a new one every fifth frame
 			if self.help > 5:
 				self.oldrect = self.rect
@@ -543,14 +555,12 @@ class Enemy(pygame.sprite.Sprite):
 		collision_list = pygame.sprite.spritecollide(self, self.walls, False)
 		for collision in collision_list:
 			if self.left:
-				print("enemy Vasen reuna kolahti",collision.id)
+				#print("enemy Vasen reuna kolahti",self.id)
 				self.rect.left = collision.rect.right
-				print(self.speed)
 				self.speed *= -1
-				print(self.speed)
 				collide = True
 			elif self.right:
-				print("enemy Oikee reuna kolahti",collision.id)
+				#print("enemy Oikee reuna kolahti",self.id)
 				self.rect.right = collision.rect.left
 				self.speed *= -1
 				collide = True
@@ -563,12 +573,12 @@ class Enemy(pygame.sprite.Sprite):
 		self.onground = False
 		for collision in collision_list:
 			if self.up:
-				print("yläreuna kolahti",collision.id)
+				#print("yläreuna kolahti",self.id)
 				self.rect.top = collision.rect.bottom
 				self.yvelocity = 0
 				collide = True
 			if self.down:
-				#print("alareuna kolahti",collision.id)
+				#print("alareuna kolahti",self.id)
 				self.rect.bottom = collision.rect.top
 				self.onground = True
 				self.yvelocity = 0
