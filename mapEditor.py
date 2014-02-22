@@ -46,6 +46,7 @@ class MapEditor():
 		self.controls = pygame.image.load("graphics/controls1.PNG").convert()
 		self.controls.set_colorkey((255,255,255))
 		self.camera = Camera(800,800)
+		self.start_pos_set = False
 		
 	def run(self):
 		self.offset = Rect(1,1,WIDTH,HEIGHT)
@@ -134,14 +135,20 @@ class MapEditor():
 							## MOUSE EVENTS
 				elif event.type == pygame.MOUSEBUTTONDOWN:
 					if event.dict["button"]==1:
-						if not(self.player.collide(self.WallSprites)):
+						if self.player.type == 0 and self.start_pos_set:
+							print("You can only have one starting position set, please remove the old one")
+						elif not(self.player.collide(self.WallSprites)):
 							wall = Wall(self.player.rect.center,self.player.get_dimensions(),self.player.type)
 							self.WallSprites.add(wall)
 							self.spriteList.append(wall)
+							if self.player.type == 0:
+								self.start_pos_set = True
 							print("Uusi sprite!")
 					elif event.dict["button"]==3:
 						kill_list = pygame.sprite.spritecollide(self.player, self.WallSprites,True)
 						for wall in kill_list:
+							if wall.type == 0:
+								self.start_pos_set = False
 							self.spriteList.remove(wall)
 					elif event.dict["button"]==4:#scrolling up
 						print("ylös")
@@ -277,6 +284,7 @@ class Player(pygame.sprite.Sprite):
 			self.apply_texture()
 			
 	def change_type(self,type):
+		self.type = 1
 		if type == 1:
 			self.texture = pygame.image.load("graphics/tile1.png").convert()
 		elif type == 2:
@@ -288,11 +296,11 @@ class Player(pygame.sprite.Sprite):
 		elif type == 5:
 			self.texture = pygame.image.load("graphics/tile5.png").convert()
 		elif type == 0:
-			self.texture.fill((0,0,255))
-			self.change_dimensions(40,46)
+			self.texture = pygame.image.load("graphics/pelaaja_oikea_0.png").convert()
+			self.change_dimensions(40,45)
 		elif type == 9:
 			self.texture = pygame.image.load("graphics/puukottaja0.png").convert()
-			self.change_dimensions(45,64)
+			self.change_dimensions(41,57)
 		self.type = type
 		self.apply_texture()
 	
@@ -357,7 +365,7 @@ class Wall(pygame.sprite.Sprite):
 		elif self.type == 5:
 			texture = pygame.image.load("graphics/tile5.png").convert()
 		elif self.type == 0:
-			texture.fill((0,0,255))
+			texture = pygame.image.load("graphics/pelaaja_oikea_0.png").convert()
 		elif self.type == 9:
 			texture = pygame.image.load("graphics/puukottaja0.png").convert()
 
