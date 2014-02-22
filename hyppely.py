@@ -3,19 +3,86 @@ from pygame.locals import *
 """
 Muutin animaatiota sillain et HETI kun vaihtaa suuntaa niin pelaajan kuvakin kääntyy ympäri
 TODO:
-	Animaatiot spritelle  DONE  
+	Animaatiot spritelle  DONE
 	Grafiikat seinille DONE
 	Taustakuva?
 	ampuminen DONE
 	Oma ERILLINEN fysiikka moottori. se olis hauska?
 """
-#ADDED 19.2.14 player picturereturner line 261 
 BLACK = (0,0,0)
 WHITE = (255,255,255)
 WIDTH = 800
 HEIGHT = 600 
 FPS = 60
 GRAVITY = 80#Pixels/second
+
+class Creature(pygame.sprite.Sprite):
+	
+	def __init__(self, pos):
+		self.left = False
+		self.right = False
+		self.up = False
+		self.down = False
+		self.yvelocity = 0
+		self.help = 0#help variable, for the animation, for every x:th(fifth) load a new image
+		self.frame = 0#Tells which frame to show in the animation
+		self.facing_left = False
+		self.rect = self.image.get_rect()
+		self.rect.center = pos
+		
+	def ycollision(self):
+		collide = False
+		collision_list = pygame.sprite.spritecollide(self, self.walls, False)
+		self.onground = False
+		for collision in collision_list:
+			if self.up:
+				self.rect.top = collision.rect.bottom
+				self.yvelocity = 0
+				collide = True
+			if self.down:
+				self.rect.bottom = collision.rect.top
+				self.onground = True
+				self.yvelocity = 0
+				collide = True
+
+		return collide		
+	
+	
+	def xcollision(self):	
+		collide = False
+		collision_list = pygame.sprite.spritecollide(self, self.walls, False)
+		for collision in collision_list:
+			if self.left:
+				self.rect.left = collision.rect.right
+				collide = True
+			elif self.right:
+				self.rect.right = collision.rect.left
+				collide = True
+
+		return collide	
+		
+
+	def move_x(self,x):
+		self.rect.centerx += x
+		return self.xcollision()
+		
+		
+	def move_y(self,y):
+		self.rect.centery += y			
+		return self.ycollision()
+		
+	def gravity(self, seconds):
+
+		self.yvelocity += GRAVITY*seconds
+		if self.yvelocity > 800*seconds:
+			self.yvelocity = 800*seconds
+		if self.yvelocity >= 0:
+			self.up = False
+			self.down = True
+		else:
+			self.up = True
+			self.down = False			
+
 
 class Camera():
 	def __init__(self, width,height):
@@ -176,31 +243,19 @@ class Tasohyppely():
 		for enemy in self.enemySprites:
 			enemy.walls = self.wallSprites
 			
-class Player(pygame.sprite.Sprite):
+class Player(Creature):
 
-	def __init__(self, walls,start_pos):
+	def __init__(self, walls,pos):
 		pygame.sprite.Sprite.__init__(self)
 		self.image = pygame.image.load("graphics/pelaaja_oikea_0.png").convert()
 		self.image.set_colorkey(WHITE)
-		self.rect = self.image.get_rect()
+		super().__init__(pos)
 		#Loads the png files to list for the running animation. 
 		self.right_image_list = []
 		self.left_image_list = []
-		self.load_animations()
-		#Starting position
-		self.rect.center = start_pos
-		#Booleans where the direction of the player is saved
-		self.left = False
-		self.right = False
-		self.up = False
-		self.down = False
+		self.load_textures()
 		self.walls = walls#List of every wall in the map (for collision detection etc.)
-		self.yvelocity = 0
-		self.help = 0 #help variable, for the animation, for every x:th(fifth) load a new image
-		self.oldrect = self.rect 
-		self.frame = 0#Tells which frame to show in the animation
 		self.onground = False
-		self.facing_left = False
 		self.hp = 2
 		
 	def update(self,left,right,up,down,seconds):
@@ -212,14 +267,11 @@ class Player(pygame.sprite.Sprite):
 		self.down = down
 		self.speed = 300# set the speed of the sprite(pixels/second)
 		self.speed = int(self.speed * seconds)
-		if self.up:#If up is pressed it means its time to jump!
-			self.jump = True
-		else:
-			self.jump = False
+
+
 			
 		self.help += 1	
 		if self.left:
-			#self.image = self.left_image_list[0]
 			if not self.facing_left:
 				self.frame = 0
 				self.help = 6
@@ -238,9 +290,8 @@ class Player(pygame.sprite.Sprite):
 			for i in range(0,self.speed):
 				if self.move_x(-1):
 					break
-		
-		elif self.right:    #elif
-			#self.image = self.right_image_list[0]
+			
+		elif self.right:
 			if self.facing_left:
 				self.frame = 0
 				self.help = 6
@@ -259,14 +310,23 @@ class Player(pygame.sprite.Sprite):
 			for i in range(0,self.speed):
 				if self.move_x(1):
 					break
-		elif not self.right and not self.left:		#returns the player picture to its original stance
+					
+		
+		
+		elif not self.right and not self.left:
+			#stance
 			if self.facing_left:
-				self.image = self.left_image_list[0]	#added
+				self.image = self.left_image_list[0] 
 				self.image.set_colorkey(WHITE)
 			else:
-				self.image = self.right_image_list[0]	#added
-				self.image.set_colorkey(WHITE)
-		self.gravity(seconds)#Add gravity to the y axis
+				self.image = self.right_image_list[0]
+				self.image.set_colorkey(WHITE)				
+				
+		if self.up:
+			self.jump()
+			
+		self.gravity(seconds)#Add gravity
+
 		if self.up:
 			for i in range(0,int(-self.yvelocity)):
 				if self.move_y(-1):
@@ -276,76 +336,11 @@ class Player(pygame.sprite.Sprite):
 			for i in range(0,int(self.yvelocity)):
 				if self.move_y(1):
 					break
-
-		
-		
-	def move_x(self,x):
-		if self.right:
-				self.rect.centerx += x
-		elif self.left:
-				self.rect.centerx += x
-		return self.xcollision()
-		
-		
-	def move_y(self,y):
-		if self.up:
-				self.rect.centery += y
-
-		elif self.down:
-				self.rect.centery += y
-					
-		return self.ycollision()
-
 	
-	def xcollision(self):	
-		collide = False
-		collision_list = pygame.sprite.spritecollide(self, self.walls, False)
-		for collision in collision_list:
-			if self.left:
-				print("Vasen reuna kolahti",collision.id)
-				self.rect.left = collision.rect.right
-				collide = True
-			elif self.right:
-				print("Oikee reuna kolahti",collision.id)
-				self.rect.right = collision.rect.left
-				collide = True
+	def jump(self):
+		if self.onground:
+			self.yvelocity = -21
 
-		return collide	
-			
-	def ycollision(self):
-		collide = False
-		collision_list = pygame.sprite.spritecollide(self, self.walls, False)
-		self.onground = False
-		for collision in collision_list:
-			if self.up:
-				print("yläreuna kolahti",collision.id)
-				self.rect.top = collision.rect.bottom
-				self.yvelocity = 0
-				collide = True
-			if self.down:
-				#print("alareuna kolahti",collision.id)
-				self.rect.bottom = collision.rect.top
-				self.onground = True
-				self.yvelocity = 0
-				collide = True
-
-		return collide	
-	
-	def gravity(self, seconds):
-		if self.jump and self.onground:
-			self.yvelocity = -20
-			self.up = False
-		else:
-			self.yvelocity += GRAVITY*seconds
-			if self.yvelocity > 800*seconds:
-				self.yvelocity = 800*seconds
-		if self.yvelocity >= 0:
-			self.up = False
-			self.down = True
-		else:
-			self.up = True
-			self.down = False
-	
 	def get_position(self):
 		return self.rect.center
 	
@@ -362,7 +357,7 @@ class Player(pygame.sprite.Sprite):
 			dead = True
 		return dead
 			
-	def load_animations(self):
+	def load_textures(self):
 		self.right_image_list.append(pygame.image.load("graphics/pelaaja_oikea_0.png").convert())
 		self.right_image_list.append(pygame.image.load("graphics/pelaaja_oikea_1.png").convert())
 		self.right_image_list.append(pygame.image.load("graphics/pelaaja_oikea_2.png").convert())
@@ -447,26 +442,18 @@ class Projectile(pygame.sprite.Sprite):
 		if len(collision_list) > 0:
 			self.kill()
 			
-class Enemy(pygame.sprite.Sprite):
+class Enemy(Creature):
 	
 	def __init__(self,pos,type,id):
 		pygame.sprite.Sprite.__init__(self)
-		self.apply_texture()
-		self.rect = self.image.get_rect()
-		self.rect.center = pos
+		self.load_textures()
+		super().__init__(pos)
 		self.type = type
 		self.speed = 300
-		self.left =False
-		self.right=False
-		self.up=False
-		self.down = False
 		self.id = id
-		self.help = 0
-		self.frame = 0
-		self.yvelocity = 0
 		self.walls = None
-		self.facing_left = True
-	def apply_texture(self,type=1):
+		
+	def load_textures(self,type=1):
 		self.right_image_list =[]
 		self.left_image_list =[]
 		if type == 1:
@@ -481,6 +468,7 @@ class Enemy(pygame.sprite.Sprite):
 				self.left_image_list.append(pygame.transform.flip(image,True,False))
 			self.image = self.right_image_list[0]
 		self.image.set_colorkey(WHITE)
+		
 	def update(self,seconds):
 		self.xvelocity = self.speed# set the speed of the sprite(pixels/second)
 		self.xvelocity = int(self.xvelocity * seconds)
@@ -509,6 +497,7 @@ class Enemy(pygame.sprite.Sprite):
 				
 			for i in range(0,self.xvelocity):
 				if self.move_x(-1):
+					self.speed *= -1
 					break
 			
 		elif self.right:
@@ -529,6 +518,7 @@ class Enemy(pygame.sprite.Sprite):
 				
 			for i in range(0,abs(self.xvelocity)):
 				if self.move_x(1):
+					self.speed *= -1
 					break
 					
 		self.gravity(seconds)#Add gravity to the y axis
@@ -541,71 +531,8 @@ class Enemy(pygame.sprite.Sprite):
 			for i in range(0,int(self.yvelocity)):
 				if self.move_y(1):
 					break
-		
-	def move_x(self,x):
-		if self.right:
-				self.rect.centerx += x
-		elif self.left:
-				self.rect.centerx += x
-		return self.xcollision()
-		
-		
-	def move_y(self,y):
-		if self.up:
-				self.rect.centery += y
 
-		elif self.down:
-				self.rect.centery += y
-					
-		return self.ycollision()	
-		
-	def xcollision(self):	
-		collide = False
-		collision_list = pygame.sprite.spritecollide(self, self.walls, False)
-		for collision in collision_list:
-			if self.left:
-				#print("enemy Vasen reuna kolahti",self.id)
-				self.rect.left = collision.rect.right
-				self.speed *= -1
-				collide = True
-			elif self.right:
-				#print("enemy Oikee reuna kolahti",self.id)
-				self.rect.right = collision.rect.left
-				self.speed *= -1
-				collide = True
-
-		return collide	
 			
-	def ycollision(self):
-		collide = False
-		collision_list = pygame.sprite.spritecollide(self, self.walls, False)
-		self.onground = False
-		for collision in collision_list:
-			if self.up:
-				#print("yläreuna kolahti",self.id)
-				self.rect.top = collision.rect.bottom
-				self.yvelocity = 0
-				collide = True
-			if self.down:
-				#print("alareuna kolahti",self.id)
-				self.rect.bottom = collision.rect.top
-				self.onground = True
-				self.yvelocity = 0
-				collide = True
-
-		return collide	
-	
-	def gravity(self, seconds):
-
-		self.yvelocity += GRAVITY*seconds
-		if self.yvelocity > 800*seconds:
-			self.yvelocity = 800*seconds
-		if self.yvelocity >= 0:
-			self.up = False
-			self.down = True
-		else:
-			self.up = True
-			self.down = False
 
 	
 def main():
