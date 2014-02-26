@@ -227,12 +227,12 @@ class Tasohyppely():
 					wall = Wall(pos, dimensions,type, id)
 					self.wallSprites.add(wall)
 					self.allSprites.add(wall)
-					self.spriteList.add(wall)
+					self.spriteList.add(wall)				
+					if wall.rect.right > self.map_width:#gets the width of the map 
+						self.map_width = wall.rect.right
+					if wall.rect.bottom > self.map_height:#gets the height of the map
+						self.map_height = wall.rect.bottom
 				id += 1#Every object has its own unique ID (mostly for debugging/testing purposes)
-				if wall.rect.right > self.map_width:#gets the width of the map 
-					self.map_width = wall.rect.right
-				if wall.rect.bottom > self.map_height:#gets the height of the map
-					self.map_height = wall.rect.bottom
 		except:
 			print ("Unexpected error:", sys.exc_info()[0])
 			raise
