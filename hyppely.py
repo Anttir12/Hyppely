@@ -181,7 +181,7 @@ class Tasohyppely():
 				self.enemySprites.update(seconds)#update enemies
 				for object in self.allSprites:
 					self.screen.blit(object.image, self.camera.apply(object))
-				pygame.display.update(Rect(0,0,800,600))#update the screen
+				pygame.display.update(Rect(0,0,WIDTH,HEIGHT))#update the screen
 				up = False
 				if not playing:
 					self.restart()
