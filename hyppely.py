@@ -29,6 +29,7 @@ class Creature(pygame.sprite.Sprite):
 		self.facing_left = False
 		self.rect = self.image.get_rect()
 		self.rect.center = pos
+		self.onground = False
 		
 	def ycollision(self):
 		collide = False
@@ -120,6 +121,7 @@ class Tasohyppely():
 		self.allSprites = pygame.sprite.Group()
 		self.font = pygame.font.SysFont(None, 36)
 		self.lue = lueString.lue(self.screen, self.font) 
+		self.font = pygame.font.SysFont("Arial", 26)
 		
 	def run(self):
 		
@@ -181,6 +183,9 @@ class Tasohyppely():
 				self.enemySprites.update(seconds)#update enemies
 				for object in self.allSprites:
 					self.screen.blit(object.image, self.camera.apply(object))
+				if pygame.font:
+					fps_text = self.font.render("FPS: %d" %(int(1/seconds)) ,2, (255, 255, 225))
+					self.screen.blit(fps_text, (WIDTH-200,HEIGHT-75))
 				pygame.display.update(Rect(0,0,WIDTH,HEIGHT))#update the screen
 				up = False
 				if not playing:
@@ -494,11 +499,11 @@ class Enemy(Creature):
 				if self.frame > 5:
 					self.frame = 0
 				self.help = 0
-				
-			for i in range(0,self.xvelocity):
-				if self.move_x(-1):
-					self.speed *= -1
-					break
+			if self.onground:		
+				for i in range(0,self.xvelocity):
+					if self.move_x(-1):
+						self.speed *= -1
+						break
 			
 		elif self.right:
 			if self.facing_left:
@@ -515,11 +520,11 @@ class Enemy(Creature):
 				if self.frame > 5:
 					self.frame = 0				
 				self.help = 0
-				
-			for i in range(0,abs(self.xvelocity)):
-				if self.move_x(1):
-					self.speed *= -1
-					break
+			if self.onground:	
+				for i in range(0,abs(self.xvelocity)):
+					if self.move_x(1):
+						self.speed *= -1
+						break
 					
 		self.gravity(seconds)#Add gravity to the y axis
 		if self.up:
