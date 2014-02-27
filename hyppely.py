@@ -102,7 +102,7 @@ class Camera():
 		left = min(500, left)                           # stop scrolling at the left edge
 		left = max(-(camera.width-WIDTH), left)  		# stop scrolling at the right edge
 		top = max(-(camera.height-HEIGHT), top) 	# stop scrolling at the bottom
-		top = min(150, top)                           # stop scrolling at the top
+		#top = min(150, top)                           # stop scrolling at the top
 		return Rect(left, top, w, h)
 
 class Tasohyppely():
