@@ -127,9 +127,7 @@ class Tasohyppely():
 		
 		while True:
 			playing = True
-			self.lue.lue()
-			filename = self.lue.getSana()
-			self.load_map(filename)
+			self.load_map()
 			self.camera = Camera(self.map_width,self.map_height+200)
 			left = right = up = down = False
 			while playing:
@@ -211,37 +209,42 @@ class Tasohyppely():
 		self.player.kill()
 		return False
 		
-	def load_map(self, filename="taso"):#loads map
+	def load_map(self):#loads map
 		self.map_width = 0
 		self.map_height = 0
 		id = 0
 		self.start_pos= (0,0)
-		try:
-			with open("maps/"+filename, 'rb') as f:#open file
-				self.setupList = pickle.load(f)#saves the contents of the file in a list
-			for setup in self.setupList:#Uses the data provided by the file to build the world
-				pos, dimensions, type = setup
-				if type == 0:
-					self.start_pos = pos
-				elif type == 9:
-					enemy = Enemy(pos,type, id)
-					self.enemySprites.add(enemy)
-					self.allSprites.add(enemy)
-					self.spriteList.add(enemy)
-				else:
-					wall = Wall(pos, dimensions,type, id)
-					self.wallSprites.add(wall)
-					self.allSprites.add(wall)
-					self.spriteList.add(wall)				
-					if wall.rect.right > self.map_width:#gets the width of the map 
-						self.map_width = wall.rect.right
-					if wall.rect.bottom > self.map_height:#gets the height of the map
-						self.map_height = wall.rect.bottom
-				id += 1#Every object has its own unique ID (mostly for debugging/testing purposes)
-		except:
-			print ("Unexpected error:", sys.exc_info()[0])
-			raise
-			print("Fuck meh!! Load failed")
+		while True:
+			self.lue.lue()
+			filename = self.lue.getSana()
+			
+			try:
+				with open("maps/"+filename, 'rb') as f:#open file
+					self.setupList = pickle.load(f)#saves the contents of the file in a list
+				break
+			except Exception:
+				print("Fuck meh!! Load failed")
+				
+		for setup in self.setupList:#Uses the data provided by the file to build the world
+			pos, dimensions, type = setup
+			if type == 0:#set starting position
+				self.start_pos = pos
+			elif type == 9:#Create enemies
+				enemy = Enemy(pos,type, id)
+				self.enemySprites.add(enemy)
+				self.allSprites.add(enemy)
+				self.spriteList.add(enemy)
+			else:#create walls
+				wall = Wall(pos, dimensions,type, id)
+				self.wallSprites.add(wall)
+				self.allSprites.add(wall)
+				self.spriteList.add(wall)				
+				if wall.rect.right > self.map_width:#gets the width of the map 
+					self.map_width = wall.rect.right
+				if wall.rect.bottom > self.map_height:#gets the height of the map
+					self.map_height = wall.rect.bottom
+			id += 1#Every object has its own unique ID (mostly for debugging/testing purposes)
+		
 		f.close()
 		self.player = Player(self.wallSprites, self.start_pos)
 		self.allSprites.add(self.player)
