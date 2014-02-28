@@ -225,6 +225,7 @@ class MapEditor():
 		self.spriteList = []
 		self.WallSprites.empty()
 		self.setupList = []
+		self.start_pos_set = False
 		
 	def move(self,left,right,up,down):
 		if left:
