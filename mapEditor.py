@@ -79,14 +79,10 @@ class MapEditor():
 					elif event.key == pygame.K_LALT:
 						rotate = True
 					elif event.key == pygame.K_s:
-						self.lue.lue()
-						filename = self.lue.getSana()
-						self.save_map(filename)
+						self.save_map()
 					elif event.key == pygame.K_l:
 						self.clear()
-						self.lue.lue()
-						filename = self.lue.getSana()
-						self.load_map(filename)
+						self.load_map()
 					elif event.key == pygame.K_c:
 						self.clear()
 					elif event.key == pygame.K_F1:
@@ -185,6 +181,8 @@ class MapEditor():
 		pygame.quit()
 		
 	def save_map(self, filename="taso"):
+		self.lue.lue()
+		filename = self.lue.getSana()
 		i = 0
 		self.setupList = []
 		for sprite in self.WallSprites:
@@ -200,20 +198,24 @@ class MapEditor():
 		f.close()
 		
 			
-	def load_map(self, filename="taso"):
+	def load_map(self):
 		
-		try:
-			with open("maps/"+filename, 'rb') as f:
-				self.setupList = pickle.load(f)
-			for setup in self.setupList:
-				pos, dimensions, type = setup
-				wall = Wall(pos, dimensions, type)
-				self.WallSprites.add(wall)
-				self.spriteList.append(wall)
-		except:
-			print ("Unexpected error:", sys.exc_info()[0])
-			raise
-			print("Fuck meh!! Load failed")
+		while True:
+			self.lue.lue()
+			filename = self.lue.getSana()
+			try:
+				with open("maps/"+filename, 'rb') as f:
+					self.setupList = pickle.load(f)
+				break
+			except:
+				print("Fuck meh!! Load failed")
+				
+		for setup in self.setupList:
+			pos, dimensions, type = setup
+			wall = Wall(pos, dimensions, type)
+			self.WallSprites.add(wall)
+			self.spriteList.append(wall)
+		
 		f.close()
 		
 	def clear(self):
