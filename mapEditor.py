@@ -33,6 +33,9 @@ class MapEditor():
 		pygame.display.set_mode((WIDTH,HEIGHT), pygame.RESIZABLE)
 		pygame.display.set_caption("kamera testailuu")
 		self.screen = pygame.display.get_surface()
+		self.menu = pygame.Surface((80,600))
+		self.menu.fill((140,140,140))
+		self.menu_items = pygame.sprite.Group()
 		self.WallSprites = pygame.sprite.Group()
 		self.setupList = []
 		self.spriteList = []
@@ -52,12 +55,13 @@ class MapEditor():
 		self.offset = Rect(1,1,WIDTH,HEIGHT)
 		left = right = up = down = False
 		rotate = onlyheight = onlywidth = False
+		self.create_menu()
 		while True:
 			self.clock.tick(90)
 			#Events
 			
 			for event in pygame.event.get():#Event handling
-				print(event)
+				#print(event)
 				if event.type == QUIT:
 					pygame.quit()
 					sys.exit(0)
@@ -131,15 +135,7 @@ class MapEditor():
 							## MOUSE EVENTS
 				elif event.type == pygame.MOUSEBUTTONDOWN:
 					if event.dict["button"]==1:
-						if self.player.type == 0 and self.start_pos_set:
-							print("You can only have one starting position set, please remove the old one")
-						elif not(self.player.collide(self.WallSprites)):
-							wall = Wall(self.player.rect.center,self.player.get_dimensions(),self.player.type)
-							self.WallSprites.add(wall)
-							self.spriteList.append(wall)
-							if self.player.type == 0:
-								self.start_pos_set = True
-							print("Uusi sprite!")
+						self.mouse1()
 					elif event.dict["button"]==3:
 						kill_list = pygame.sprite.spritecollide(self.player, self.WallSprites,True)
 						for wall in kill_list:
@@ -171,14 +167,45 @@ class MapEditor():
 			self.camera.update(self.offset)			
 			self.allSprites.update(self.offset.x, self.offset.y)
 			self.screen.fill(BLACK)
-			self.screen.blit(self.controls, (0,0))
+			self.screen.blit(self.controls, (100,0))
 			for wall in self.spriteList:
 				self.screen.blit(wall.image, self.camera.apply(wall))
 			self.screen.blit(self.player.image, self.camera.apply(self.player))
+			self.screen.blit(self.menu, (0,0))
 			pygame.display.update(Rect(0,0,800,600))
 			pygame.display.flip()
 		
 		pygame.quit()
+	
+	def mouse1(self):
+		if self.player.rect.x < 81:
+			self.player.change_type(1)
+			x, y = self.player.image.get_size()
+			self.player.change_dimensions (1,1)
+			check = pygame.sprite.spritecollide(self.player, self.menu_items, False)
+			for item in check:
+				self.player.change_type(item.type)
+				print(item.type)
+			self.player.change_dimensions (x,y)
+		elif self.player.type == 0 and self.start_pos_set:
+			print("You can only have one starting position set, please remove the old one")
+		elif not(self.player.collide(self.WallSprites)):
+			wall = Wall(self.player.rect.center,self.player.get_dimensions(),self.player.type)
+			self.WallSprites.add(wall)
+			self.spriteList.append(wall)
+			if self.player.type == 0:
+				self.start_pos_set = True
+			print("Uusi sprite!")
+	def create_menu(self):
+		menu_items = ["start","wall 1","wall 2","wall 3","wall 4","wall 5","wall 6","wall 7","wall 8","Stabber",]
+		y= 1
+		type = 0
+		for item in menu_items:
+			button = Menu_item(y,item,type)
+			self.menu_items.add(button)
+			self.menu.blit(button.image,(0,y))
+			y += 30
+			type += 1
 		
 	def save_map(self, filename="taso"):
 		self.lue.lue()
@@ -381,7 +408,20 @@ class Wall(pygame.sprite.Sprite):
 			for x in range (0,width,xstep):
 				self.image.blit(texture,(x,y))
 		
-	
+class Menu_item(pygame.sprite.Sprite):
+	def __init__(self, y, text, type):
+		pygame.sprite.Sprite.__init__(self)
+		self.image = pygame.Surface((80,29))
+		self.image.fill(WHITE)
+		font = pygame.font.SysFont("Arial", 12)
+		buttontext = font.render(text,2,BLACK)
+		self.image.blit(buttontext, (0,0))
+		self.rect = self.image.get_rect()
+		self.rect.x = 0
+		self.rect.y = y
+		self.type = type
+		print(self.rect.top," - ",self.rect.bottom)
+		
 def main():
 	MapEditor().run()
 	
