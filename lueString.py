@@ -5,21 +5,23 @@ import pygame, string,sys
 from pygame.locals import *
 
 class lue():
-	def __init__(self, screen_, font_, pos_=(200,200)):
+	def __init__(self, screen_, font_, pos_=(0,0)):
 		pygame.init()
 		#windowSurfaceObj = pygame.display.set_mode((200,200),pygame.RESIZABLE)
 		self.screen = screen_
 		self.pos = pos_
+		print(self.pos)
 		self.font = font_
 		self.sana = "testi";
 		self.shift = False
-
+		self.txtSurface = pygame.Surface((500,40))
 	def lue(self):
 		
 		while True:
-			self.screen.fill((0,0,0))
+			self.txtSurface.fill((69,69,69))
 			textField = self.font.render(self.sana ,2, (0, 255, 0))
-			self.screen.blit(textField, self.pos)
+			self.txtSurface.blit(textField, (0,0))
+			self.screen.blit(self.txtSurface,self.pos)
 			pygame.display.flip()
 			
 			for event in pygame.event.get():

@@ -43,7 +43,7 @@ class MapEditor():
 		self.player = Player(30,30)
 		self.allSprites.add(self.player)
 		self.font = pygame.font.SysFont(None, 36)
-		self.lue = lueString.lue(self.screen, self.font) 
+		self.lue = lueString.lue(self.screen, self.font,(WIDTH-500,HEIGHT-40)) 
 		self.boldfont = pygame.font.SysFont("Arial", 26, True)
 		self.normfont = pygame.font.SysFont("Arial", 26)
 		self.controls = pygame.image.load("graphics/controls1.PNG").convert()
@@ -55,6 +55,7 @@ class MapEditor():
 		self.offset = Rect(1,1,WIDTH,HEIGHT)
 		left = right = up = down = False
 		rotate = onlyheight = onlywidth = False
+		bgset = False
 		self.create_menu()
 		while True:
 			self.clock.tick(90)
@@ -166,7 +167,10 @@ class MapEditor():
 			self.move(left,right,up,down)
 			self.camera.update(self.offset)			
 			self.allSprites.update(self.offset.x, self.offset.y)
-			self.screen.fill(BLACK)  # tähän kuva +offset
+			if bgset:
+				self.screen.blit(self.backgroundimg,(self.offset.x,self.offset.y))
+			else:
+				self.screen.fill(BLACK)  # tähän kuva +offset
 			self.screen.blit(self.controls, (100,0))
 			
 			for item in self.menu_items:

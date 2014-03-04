@@ -120,7 +120,7 @@ class Tasohyppely():
 		self.setupList = []
 		self.allSprites = pygame.sprite.Group()
 		self.font = pygame.font.SysFont(None, 36)
-		self.lue = lueString.lue(self.screen, self.font) 
+		self.lue = lueString.lue(self.screen, self.font,(WIDTH-500,HEIGHT-40)) 
 		self.font = pygame.font.SysFont("Arial", 26)
 		
 	def run(self):
