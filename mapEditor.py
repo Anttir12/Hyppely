@@ -166,8 +166,12 @@ class MapEditor():
 			self.move(left,right,up,down)
 			self.camera.update(self.offset)			
 			self.allSprites.update(self.offset.x, self.offset.y)
-			self.screen.fill(BLACK)
+			self.screen.fill(BLACK)  # tähän kuva +offset
 			self.screen.blit(self.controls, (100,0))
+			
+			for item in self.menu_items:
+				item.rect.y = item.helpy +self.offset.y
+				item.rect.x = 0 +self.offset.x
 			for wall in self.spriteList:
 				self.screen.blit(wall.image, self.camera.apply(wall))
 			self.screen.blit(self.player.image, self.camera.apply(self.player))
@@ -178,7 +182,8 @@ class MapEditor():
 		pygame.quit()
 	
 	def mouse1(self):
-		if self.player.rect.x < 81:
+		
+		if self.player.rect.x < self.menu_items.sprites()[0].rect.right:
 			self.player.change_type(1)
 			x, y = self.player.image.get_size()
 			self.player.change_dimensions (1,1)
@@ -206,14 +211,46 @@ class MapEditor():
 			self.menu.blit(button.image,(0,y))
 			y += 30
 			type += 1
-		
+			
+	def map_size(self):
+				
+		xmax = xmin = ymax = ymin = 0
+		for sprite in self.WallSprites:
+			
+			if sprite.rect.x > xmax:
+				xmax = sprite.rect.x
+			elif sprite.rect.x < xmin:
+				xmin =sprite.rect.x
+			if sprite.rect.y > ymax:
+				ymax = sprite.rect.y
+			elif sprite.rect.y < ymin:
+				ymin = sprite.rect.y
+				
+				
+		return xmax,xmin,ymax,ymin
+			
+	def save_map_img(self, filename):
+		print("kuvaa tallennetaan")
+		xmax,xmin,ymax,ymin = self.map_size()
+		print(xmax,xmin, "  ",ymax,ymin)
+		x= (int)(xmax +abs(xmin))
+		y= (int)(ymax+abs(ymin))
+		print(x,"  ",y)
+		imagesrf = pygame.Surface((x+100,y+100))
+		for sprite in self.WallSprites:
+			imagesrf.blit(sprite.image,(sprite.rect.x+abs(xmin), sprite.rect.y+abs(ymin)))
+			print(sprite.rect.x, sprite.rect.y)
+		filename = filename+".JPEG"
+		pygame.image.save(imagesrf, filename)	
+
+	
 	def save_map(self, filename="taso"):
 		self.lue.lue()
 		filename = self.lue.getSana()
+		self.save_map_img(filename)
 		i = 0
 		self.setupList = []
 		for sprite in self.WallSprites:
-			print(i)
 			i += 1
 			if sprite.save:
 				self.setupList.append(sprite.get_data())
@@ -417,10 +454,11 @@ class Menu_item(pygame.sprite.Sprite):
 		buttontext = font.render(text,2,BLACK)
 		self.image.blit(buttontext, (0,0))
 		self.rect = self.image.get_rect()
+		self.helpy = y
 		self.rect.x = 0
 		self.rect.y = y
 		self.type = type
-		print(self.rect.top," - ",self.rect.bottom)
+		#print(self.rect.top," - ",self.rect.bottom)
 		
 def main():
 	MapEditor().run()
