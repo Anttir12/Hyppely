@@ -50,6 +50,7 @@ class MapEditor():
 		self.controls.set_colorkey((255,255,255))
 		self.camera = Camera(800,800)
 		self.start_pos_set = False
+		self.bgset= False
 		
 	def run(self):
 		self.offset = Rect(1,1,WIDTH,HEIGHT)
@@ -167,8 +168,8 @@ class MapEditor():
 			self.move(left,right,up,down)
 			self.camera.update(self.offset)			
 			self.allSprites.update(self.offset.x, self.offset.y)
-			if bgset:
-				self.screen.blit(self.backgroundimg,(self.offset.x,self.offset.y))
+			if self.bgset:
+				self.screen.blit(self.backgroundimg,(-self.offset.x,-self.offset.y))
 			else:
 				self.screen.fill(BLACK)  # tähän kuva +offset
 			self.screen.blit(self.controls, (100,0))
@@ -193,7 +194,10 @@ class MapEditor():
 			self.player.change_dimensions (1,1)
 			check = pygame.sprite.spritecollide(self.player, self.menu_items, False)
 			for item in check:
-				self.player.change_type(item.type)
+				if item.type == 10:
+					self.load_bg()
+				else:
+					self.player.change_type(item.type)
 				print(item.type)
 			self.player.change_dimensions (x,y)
 		elif self.player.type == 0 and self.start_pos_set:
@@ -205,8 +209,20 @@ class MapEditor():
 			if self.player.type == 0:
 				self.start_pos_set = True
 			print("Uusi sprite!")
+			
+	def load_bg(self):
+		while True:
+			self.lue.lue()
+			filename = self.lue.getSana()
+			try:
+				self.backgroundimg = pygame.image.load("maps/"+filename).convert()
+				break
+			except:
+				print("Fuck meh!! Load failed")
+		self.bgset= True
+			
 	def create_menu(self):
-		menu_items = ["start","wall 1","wall 2","wall 3","wall 4","wall 5","wall 6","wall 7","wall 8","Stabber",]
+		menu_items = ["start","wall 1","wall 2","wall 3","wall 4","wall 5","wall 6","wall 7","wall 8","Stabber","Add background"]
 		y= 1
 		type = 0
 		for item in menu_items:
@@ -294,7 +310,7 @@ class MapEditor():
 		self.WallSprites.empty()
 		self.setupList = []
 		self.start_pos_set = False
-		
+		self.bgset = False
 	def move(self,left,right,up,down):
 		if left:
 			self.offset.x -= 5
