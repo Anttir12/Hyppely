@@ -168,10 +168,9 @@ class MapEditor():
 			self.move(left,right,up,down)
 			self.camera.update(self.offset)			
 			self.allSprites.update(self.offset.x, self.offset.y)
+			self.screen.fill(BLACK)
 			if self.bgset:
 				self.screen.blit(self.backgroundimg,(-self.offset.x,-self.offset.y))
-			else:
-				self.screen.fill(BLACK)  # tähän kuva +offset
 			self.screen.blit(self.controls, (100,0))
 			
 			for item in self.menu_items:
