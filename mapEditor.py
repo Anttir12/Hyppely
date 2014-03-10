@@ -44,13 +44,15 @@ class MapEditor():
 		self.allSprites.add(self.player)
 		self.font = pygame.font.SysFont(None, 36)
 		self.lue = lueString.lue(self.screen, self.font,(WIDTH-500,HEIGHT-40)) 
-		self.boldfont = pygame.font.SysFont("Arial", 26, True)
+		self.stepfont = pygame.font.SysFont("Arial", 16)
 		self.normfont = pygame.font.SysFont("Arial", 26)
 		self.controls = pygame.image.load("graphics/controls1.PNG").convert()
 		self.controls.set_colorkey((255,255,255))
 		self.camera = Camera(800,800)
 		self.start_pos_set = False
 		self.bgset= False
+		self.bgfile = None
+		self.scroll_step = 5
 		
 	def run(self):
 		self.offset = Rect(1,1,WIDTH,HEIGHT)
@@ -63,11 +65,9 @@ class MapEditor():
 			#Events
 			
 			for event in pygame.event.get():#Event handling
-				#print(event)
 				if event.type == QUIT:
 					pygame.quit()
-					sys.exit(0)
-					
+					sys.exit(0)					
 					#This part takes input and calls change_speed to move the player
 				elif event.type == pygame.KEYDOWN:
 					if event.key == pygame.K_LEFT:
@@ -115,7 +115,13 @@ class MapEditor():
 						self.player.change_type(5)
 					elif event.key == pygame.K_9:
 						self.player.change_type(9)
-						
+					elif event.key == pygame.K_KP_PLUS:	
+						self.scroll_step += 1
+						print("+step")
+					elif event.key == pygame.K_KP_MINUS:	
+						if not self.scroll_step < 2:
+							self.scroll_step -= 1
+							print("-step")
 						
 							#keyups
 				elif event.type == pygame.KEYUP:
@@ -147,44 +153,53 @@ class MapEditor():
 					elif event.dict["button"]==4:#scrolling up
 						print("ylös")
 						if onlywidth:
-							self.player.change_size(5,0)
+							self.player.change_size(self.scroll_step,0)
 						elif onlyheight:
-							self.player.change_size(0,5)
+							self.player.change_size(0,self.scroll_step)
 						#elif rotate:
 						#	self.player.rotate(10)
 						else:
-							self.player.change_size(5,5)
+							self.player.change_size(self.scroll_step,self.scroll_step)
 					elif event.dict["button"]==5:#scrolling down
 						print("alas")
 						if onlywidth:
-							self.player.change_size(-5,0)
+							self.player.change_size(-self.scroll_step,0)
 						elif onlyheight:
-							self.player.change_size(0,-5)
+							self.player.change_size(0,-self.scroll_step)
 						#elif rotate:
 						#	self.player.rotate(-10)
 						else:
-							self.player.change_size(-5,-5)
+							self.player.change_size(-self.scroll_step,-self.scroll_step)
 							
 			self.move(left,right,up,down)
 			self.camera.update(self.offset)			
 			self.allSprites.update(self.offset.x, self.offset.y)
-			self.screen.fill(BLACK)
-			if self.bgset:
+			self.screen.fill(BLACK)#Fill background with color (BLACK)
+			if self.bgset:#If there is a background image set, blit it
 				self.screen.blit(self.backgroundimg,(-self.offset.x,-self.offset.y))
-			self.screen.blit(self.controls, (100,0))
+			self.screen.blit(self.controls, (100,0))#Blit the controls to the screen
 			
-			for item in self.menu_items:
+			for item in self.menu_items:# keep the menu items at the left side of the screen
 				item.rect.y = item.helpy +self.offset.y
 				item.rect.x = 0 +self.offset.x
-			for wall in self.spriteList:
+			for wall in self.spriteList:#Blit every sprite
 				self.screen.blit(wall.image, self.camera.apply(wall))
-			self.screen.blit(self.player.image, self.camera.apply(self.player))
-			self.screen.blit(self.menu, (0,0))
-			pygame.display.update(Rect(0,0,800,600))
-			pygame.display.flip()
+			self.screen.blit(self.player.image, self.camera.apply(self.player))#blit player (mouse)
+			self.screen.blit(self.menu, (0,0))#Blit the the menu
+			if pygame.font:# Blit the text that shows the scroll_step
+				step_text = self.stepfont.render("Scroll step: %d" %(self.scroll_step) ,2, (255, 255, 225))
+				self.screen.blit(step_text, (WIDTH-100,16))
+			pygame.display.flip()#update the screen
 		
 		pygame.quit()
-	
+	def set_scrollstep(self):
+		self.lue.lue()	
+		try:
+			self.scroll_step = int(self.lue.getSana())
+			if self.scroll_step < 1:
+				self.scroll_step = 1
+		except:
+			print("Invalid input!")
 	def mouse1(self):
 		
 		if self.player.rect.x < self.menu_items.sprites()[0].rect.right:
@@ -195,6 +210,8 @@ class MapEditor():
 			for item in check:
 				if item.type == 10:
 					self.load_bg()
+				elif item.type == 11:
+					self.set_scrollstep()
 				else:
 					self.player.change_type(item.type)
 				print(item.type)
@@ -210,18 +227,18 @@ class MapEditor():
 			print("Uusi sprite!")
 			
 	def load_bg(self):
-		while True:
-			self.lue.lue()
-			filename = self.lue.getSana()
-			try:
-				self.backgroundimg = pygame.image.load("maps/"+filename).convert()
-				break
-			except:
-				print("Fuck meh!! Load failed")
-		self.bgset= True
+		self.lue.lue()
+		self.bgfile = self.lue.getSana()
+		try:
+			self.backgroundimg = pygame.image.load("maps/"+self.bgfile).convert()
+			self.self.bgfile = "maps/"+self.bgfile
+			self.bgset= True
+		except:
+			print("Fuck meh!! Load failed")
+		
 			
 	def create_menu(self):
-		menu_items = ["start","wall 1","wall 2","wall 3","wall 4","wall 5","wall 6","wall 7","wall 8","Stabber","Add background"]
+		menu_items = ["start","wall 1","wall 2","wall 3","wall 4","wall 5","wall 6","wall 7","wall 8","Stabber","Add background","scroll step"]
 		y= 1
 		type = 0
 		for item in menu_items:
@@ -273,6 +290,8 @@ class MapEditor():
 			i += 1
 			if sprite.save:
 				self.setupList.append(sprite.get_data())
+		if self.bgfile != None:
+			self.setupList.append((self.bgfile,"bg"))
 		try:
 			with open("maps/"+filename, 'wb') as f:
 				pickle.dump(self.setupList, f)
@@ -283,21 +302,27 @@ class MapEditor():
 			
 	def load_map(self):
 		
-		while True:
-			self.lue.lue()
-			filename = self.lue.getSana()
-			try:
-				with open("maps/"+filename, 'rb') as f:
-					self.setupList = pickle.load(f)
-				break
-			except:
-				print("Fuck meh!! Load failed")
+		self.lue.lue()
+		filename = self.lue.getSana()
+		try:
+			with open("maps/"+filename, 'rb') as f:
+				self.setupList = pickle.load(f)
+		except:
+			print("Fuck meh!! Load failed")
+			return
 				
 		for setup in self.setupList:
-			pos, dimensions, type = setup
-			wall = Wall(pos, dimensions, type)
-			self.WallSprites.add(wall)
-			self.spriteList.append(wall)
+			print(setup)
+			if len(setup) < 3:
+				print("ladataaan beegee")
+				self.bgfile, type = setup
+				self.backgroundimg = pygame.image.load(self.bgfile).convert_alpha()
+				self.bgset = True
+			else:
+				pos, dimensions, type = setup
+				wall = Wall(pos, dimensions, type)
+				self.WallSprites.add(wall)
+				self.spriteList.append(wall)
 		
 		f.close()
 		
@@ -433,11 +458,17 @@ class Wall(pygame.sprite.Sprite):
 		self.check_type()
 		self.movx = 0
 		self.movy = 0
-		self.save = True;	
+		self.save = True;
+		self.destroyable = False
 	
 	def get_data(self):
 		return self.rect.center, self.dimensions, self.type
-
+	def set_destroyable(self):
+		if self.destroyable:
+			self.destroyable = False
+		else:
+			self.destroyable = True
+		
 	def check_type(self):
 		texture = self.image
 		if self.type == 1:

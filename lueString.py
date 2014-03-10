@@ -12,7 +12,7 @@ class lue():
 		self.pos = pos_
 		print(self.pos)
 		self.font = font_
-		self.sana = "testi";
+		self.sana = "";
 		self.shift = False
 		self.txtSurface = pygame.Surface((500,40))
 	def lue(self):

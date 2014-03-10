@@ -1,13 +1,8 @@
 import pygame,sys,random, pickle, lueString
 from pygame.locals import * 
 """
-Muutin animaatiota sillain et HETI kun vaihtaa suuntaa niin pelaajan kuvakin kääntyy ympäri
-TODO:
-	Animaatiot spritelle  DONE
-	Grafiikat seinille DONE
-	Taustakuva?
-	ampuminen DONE
-	Oma ERILLINEN fysiikka moottori. se olis hauska?
+TODO
+	Eri iskuja(ampuja pois -> tilalle ninja?)
 """
 BLACK = (0,0,0)
 WHITE = (255,255,255)
@@ -15,7 +10,7 @@ WIDTH = 800
 HEIGHT = 600 
 FPS = 60
 GRAVITY = 80#Pixels/second
-
+#Charge keskeeeen!!!
 class Creature(pygame.sprite.Sprite):
 	
 	def __init__(self, pos):
@@ -33,32 +28,34 @@ class Creature(pygame.sprite.Sprite):
 		
 	def ycollision(self):
 		collide = False
-		collision_list = pygame.sprite.spritecollide(self, self.walls, False)
-		self.onground = False
-		for collision in collision_list:
-			if self.up:
-				self.rect.top = collision.rect.bottom
-				self.yvelocity = 0
-				collide = True
-			if self.down:
-				self.rect.bottom = collision.rect.top
-				self.onground = True
-				self.yvelocity = 0
-				collide = True
+		if self.up or self.down:
+			collision_list = pygame.sprite.spritecollide(self, self.walls, False)
+			self.onground = False
+			for collision in collision_list:
+				if self.up:
+					self.rect.top = collision.rect.bottom
+					self.yvelocity = 0
+					collide = True
+				if self.down:
+					self.rect.bottom = collision.rect.top
+					self.onground = True
+					self.yvelocity = 0
+					collide = True
 
 		return collide		
 	
 	
 	def xcollision(self):	
 		collide = False
-		collision_list = pygame.sprite.spritecollide(self, self.walls, False)
-		for collision in collision_list:
-			if self.left:
-				self.rect.left = collision.rect.right
-				collide = True
-			elif self.right:
-				self.rect.right = collision.rect.left
-				collide = True
+		if self.left or self.right:
+			collision_list = pygame.sprite.spritecollide(self, self.walls, False)
+			for collision in collision_list:
+				if self.left:
+					self.rect.left = collision.rect.right
+					collide = True
+				elif self.right:
+					self.rect.right = collision.rect.left
+					collide = True
 
 		return collide	
 		
@@ -88,7 +85,8 @@ class Creature(pygame.sprite.Sprite):
 class Camera():
 	def __init__(self, width,height):
 		self.state = Rect(0,0,width,height)#self.state basically is the offset
-		
+	def bg_pos(self,x=0,y=0):
+		return self.state.topleft
 	def apply(self, target):#Take the position of the wall and add the offset to blit it correctly
 		return target.rect.move(self.state.topleft)
 		
@@ -113,6 +111,7 @@ class Tasohyppely():
 		pygame.display.set_mode((WIDTH,HEIGHT), pygame.RESIZABLE)
 		pygame.display.set_caption("Tasohyppely")
 		self.screen = pygame.display.get_surface()
+		self.dieing_screen = pygame.image.load("dieing.png").convert_alpha()
 		self.wallSprites = pygame.sprite.Group()
 		self.allBullets = pygame.sprite.Group()
 		self.enemySprites = pygame.sprite.Group()
@@ -122,6 +121,8 @@ class Tasohyppely():
 		self.font = pygame.font.SysFont(None, 36)
 		self.lue = lueString.lue(self.screen, self.font,(WIDTH-500,HEIGHT-40)) 
 		self.font = pygame.font.SysFont("Arial", 26)
+		self.backgroundimg = pygame.Surface((800,600))
+		self.bgset = False
 		
 	def run(self):
 		
@@ -142,13 +143,13 @@ class Tasohyppely():
 						
 						#This part takes input
 					elif event.type == pygame.KEYDOWN:
-						if event.key == pygame.K_LEFT:
+						if event.key == pygame.K_a or event.key == pygame.K_LEFT:
 							left = True	
-						elif event.key == pygame.K_RIGHT:
+						elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
 							right = True	
-						elif event.key == pygame.K_UP:
+						elif event.key == pygame.K_w or event.key == pygame.K_UP:
 							up = True		
-						elif event.key == pygame.K_DOWN:
+						elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
 							down = True	
 						elif event.key == pygame.K_r:
 							playing = False
@@ -156,15 +157,17 @@ class Tasohyppely():
 							bullet = Projectile(self.player.get_position(),self.player.facing_left,self.spriteList)
 							self.allBullets.add(bullet)
 							self.allSprites.add(bullet)
+						elif event.key == pygame.K_LCTRL:
+							self.player.start_charge()
 								#keyups
 					elif event.type == pygame.KEYUP:
-						if event.key == pygame.K_LEFT:
+						if event.key == pygame.K_a or event.key == pygame.K_LEFT:
 							left = False	
-						elif event.key == pygame.K_RIGHT:
+						elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
 							right = False
-						elif event.key == pygame.K_UP:
+						elif event.key == pygame.K_w or event.key == pygame.K_UP:
 							up = False
-						elif event.key == pygame.K_DOWN:
+						elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
 							down = False
 
 						
@@ -175,7 +178,10 @@ class Tasohyppely():
 				
 				self.check_collision()
 				self.screen.fill((190,190,190))
+				
 				self.camera.update(self.player)#Update camera
+				if self.bgset:#If there is a background image, blit it!
+					self.screen.blit(self.backgroundimg,self.camera.bg_pos())
 				self.player.update(left,right,up,down, seconds)#update player		
 				self.allBullets.update(seconds)#update bullets
 				self.enemySprites.update(seconds)#update enemies
@@ -184,6 +190,8 @@ class Tasohyppely():
 				if pygame.font:
 					fps_text = self.font.render("FPS: %d" %(int(1/seconds)) ,2, (255, 255, 225))
 					self.screen.blit(fps_text, (WIDTH-200,HEIGHT-75))
+				if self.player.hp < 2:
+					self.screen.blit(self.dieing_screen,(0,0))
 				pygame.display.update(Rect(0,0,WIDTH,HEIGHT))#update the screen
 				up = False
 				if not playing:
@@ -193,10 +201,11 @@ class Tasohyppely():
 		hit_list = pygame.sprite.spritecollide(self.player, self.enemySprites, True)
 		for hit in hit_list:
 			print("Ouch", hit.id)
-			self.player.hp -= 1
-			if self.player.checkHP():
-				pass
-				#TODO: MITÄ TAPAHTUU KUN KUOLEEE??????
+			if not self.player.dash:#During dash player does not take any dmg!
+				self.player.hp -= 1
+				if self.player.checkHP():
+					pass
+					#TODO: MITÄ TAPAHTUU KUN KUOLEEE?????? MENUUN?
 				
 	def restart(self):
 		self.screen.fill((190,190,190))
@@ -226,7 +235,10 @@ class Tasohyppely():
 				print("Fuck meh!! Load failed")
 				
 		for setup in self.setupList:#Uses the data provided by the file to build the world
-			pos, dimensions, type = setup
+			if len(setup)<3:
+				filename, type = setup
+			else:
+				pos, dimensions, type = setup
 			if type == 0:#set starting position
 				self.start_pos = pos
 			elif type == 9:#Create enemies
@@ -234,6 +246,10 @@ class Tasohyppely():
 				self.enemySprites.add(enemy)
 				self.allSprites.add(enemy)
 				self.spriteList.add(enemy)
+			elif type == "bg":
+				if filename != None:
+					self.backgroundimg = pygame.image.load(filename).convert_alpha()
+					self.bgset = True
 			else:#create walls
 				wall = Wall(pos, dimensions,type, id)
 				self.wallSprites.add(wall)
@@ -265,6 +281,10 @@ class Player(Creature):
 		self.walls = walls#List of every wall in the map (for collision detection etc.)
 		self.onground = False
 		self.hp = 2
+		self.start = pos
+		self.dash_CD = 0
+		self.dash = False
+		self.charge_time = 0
 		
 	def update(self,left,right,up,down,seconds):
 		if left and right:
@@ -275,61 +295,66 @@ class Player(Creature):
 		self.down = down
 		self.speed = 300# set the speed of the sprite(pixels/second)
 		self.speed = int(self.speed * seconds)
-
-
-			
 		self.help += 1	
-		if self.left:
-			if not self.facing_left:
-				self.frame = 0
-				self.help = 6
-				self.facing_left = True
-			#replace image with a new one every fifth frame
-			if self.help > 5:
-				self.oldrect = self.rect
-				self.image = self.left_image_list[self.frame]
-				self.image.set_colorkey(WHITE)
-				self.rect = self.oldrect
-				self.frame += 1
-				if self.frame > 5:
+		if self.dash_CD > 0:
+			self.dash_CD -= seconds
+		if self.dash:
+			self.charge(seconds)
+			#return
+		else:#JOS HALUAA ETTEI PAINOVOIMA VAIKUTA CHARGEEN PITÄÄ YLLÄ OLEVA RETURN OTTAA POIS
+			 #KOMMENTEISTA JA POISTAA TÄMÄ ELSE (JA TOTTAKAI OTTAA YKSI SISENNYS POIS TÄMÄN ELSEN ALTA
+
+			if self.left:
+				if not self.facing_left:
 					self.frame = 0
-				self.help = 0
-				
-			for i in range(0,self.speed):
-				if self.move_x(-1):
-					break
-			
-		elif self.right:
-			if self.facing_left:
-				self.frame = 0
-				self.help = 6
-				self.facing_left = False
-			#replace image with a new one every fifth frame
-			if self.help > 5:
-				self.oldrect = self.rect
-				self.image = self.right_image_list[self.frame]
-				self.image.set_colorkey(WHITE)
-				self.rect = self.oldrect
-				self.frame += 1
-				if self.frame > 5:
-					self.frame = 0				
-				self.help = 0
-				
-			for i in range(0,self.speed):
-				if self.move_x(1):
-					break
+					self.help = 6
+					self.facing_left = True
+				#replace image with a new one every fifth frame
+				if self.help > 5:
+					self.oldrect = self.rect
+					self.image = self.left_image_list[self.frame]
+					self.image.set_colorkey(WHITE)
+					self.rect = self.oldrect
+					self.frame += 1
+					if self.frame > 5:
+						self.frame = 0
+					self.help = 0
 					
-		
-		
-		elif not self.right and not self.left:
-			#stance
-			if self.facing_left:
-				self.image = self.left_image_list[0] 
-				self.image.set_colorkey(WHITE)
-			else:
-				self.image = self.right_image_list[0]
-				self.image.set_colorkey(WHITE)				
+				for i in range(0,self.speed):
+					if self.move_x(-1):
+						break
 				
+			elif self.right:
+				if self.facing_left:
+					self.frame = 0
+					self.help = 6
+					self.facing_left = False
+				#replace image with a new one every fifth frame
+				if self.help > 5:
+					self.oldrect = self.rect
+					self.image = self.right_image_list[self.frame]
+					self.image.set_colorkey(WHITE)
+					self.rect = self.oldrect
+					self.frame += 1
+					if self.frame > 5:
+						self.frame = 0				
+					self.help = 0
+					
+				for i in range(0,self.speed):
+					if self.move_x(1):
+						break
+						
+			
+			
+			elif not self.right and not self.left:
+				#stance
+				if self.facing_left:
+					self.image = self.left_image_list[0] 
+					self.image.set_colorkey(WHITE)
+				else:
+					self.image = self.right_image_list[0]
+					self.image.set_colorkey(WHITE)				
+					
 		if self.up:
 			self.jump()
 			
@@ -344,7 +369,33 @@ class Player(Creature):
 			for i in range(0,int(self.yvelocity)):
 				if self.move_y(1):
 					break
-	
+					
+	def start_charge(self):
+		if self.dash_CD > 0:
+			return
+		else:
+			self.dash_CD = 1
+			self.dash = True
+			
+	def charge(self, seconds):
+		#self.dash = True#POISTA?
+		self.charge_time += seconds
+		if self.charge_time > 0.25:
+			self.dash = False
+			self.charge_time = 0
+			return
+		if self.facing_left:
+			x = -1
+			self.left = True
+			self.right = False
+		else:
+			x = 1
+			self.left = False
+			self.right = True
+		for i in range(0,self.speed*5):
+			if self.move_x(x):
+				break
+					
 	def jump(self):
 		if self.onground:
 			self.yvelocity = -21
@@ -389,22 +440,16 @@ class Wall(pygame.sprite.Sprite):
 		self.id = id
 		self.type = type
 		self.check_type()
+		self.hp = 5
+		self.destroyable = False
 		
 	def get_id(self):
 		return self.id
 	
 	def check_type(self):
 		texture = self.image
-		if self.type == 1:
-			texture = pygame.image.load("graphics/tile1.png").convert()
-		elif self.type == 2:
-			texture = pygame.image.load("graphics/tile2.png").convert()
-		elif self.type == 3:
-			texture = pygame.image.load("graphics/tile3.png").convert()
-		elif self.type == 4:
-			texture = pygame.image.load("graphics/tile4.png").convert()
-		elif self.type == 5:
-			texture = pygame.image.load("graphics/tile5.png").convert()
+		filename = ("graphics/tile"+str(self.type)+".png")
+		texture = pygame.image.load(filename).convert()
 
 		self.apply_texture(texture)
 	
@@ -413,7 +458,12 @@ class Wall(pygame.sprite.Sprite):
 		for y in range(0,height,50):
 			for x in range (0,width,50):
 				self.image.blit(texture,(x,y))
-				
+	
+	def check_hp(self):
+		self.hp -= 1
+		if self.hp < 1:
+			self.kill()
+			
 class Projectile(pygame.sprite.Sprite):
 	def __init__(self,pos,left,walls):
 		pygame.sprite.Sprite.__init__(self)
@@ -444,6 +494,9 @@ class Projectile(pygame.sprite.Sprite):
 	def collision(self):
 		collision_list = pygame.sprite.spritecollide(self, self.walls, False)
 		for collision in collision_list:
+			if collision.type > 0 and collision.type < 8:
+				if collision.destroyable:
+					collision.check_hp()
 			if collision.type == 9:
 				collision.kill()
 				print("Spläts")
